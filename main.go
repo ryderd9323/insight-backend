@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -14,14 +15,19 @@ var db *pgx.Conn
 func main() {
 	// Connect to Postgres
 	var err error
-	db, err = pgx.Connect(context.Background(), "postgres://analytics:secret@localhost:5433/insight")
-
+	db, err = pgx.Connect(context.Background(), "postgres://ryder:secret@localhost:5433/insight")
+	
 	if err != nil {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 	defer db.Close(context.Background())
-
+	
 	app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:4200",
+		AllowMethods: "GET,POST,OPTIONS",
+		AllowHeaders: "Content-Type",
+	}))
 	app.Post("/event", handleEventPost)
 	app.Listen(":3000")
 }
