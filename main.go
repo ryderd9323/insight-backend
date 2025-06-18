@@ -24,11 +24,12 @@ func main() {
 	
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:4200",
+		AllowOrigins: "http://localhost:4200, http://localhost:3000",
 		AllowMethods: "GET,POST,OPTIONS",
 		AllowHeaders: "Content-Type",
 	}))
 	app.Post("/event", handleEventPost)
+	app.Get("/session/:id", handleSessionGet)
 	app.Listen(":3000")
 }
 
@@ -55,5 +56,32 @@ func handleEventPost(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).SendString(fmt.Sprintf("Database error: %v", err))
 	}
 
-	return c.SendStatus(fiber.StatusCreated)
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status": "created",
+	})
+}
+
+func handleSessionGet(c *fiber.Ctx) error {
+	sessionID := c.Params("id")
+	rows, err := db.Query(context.Background(),
+		`SELECT session_id, type, page, x, y, timestamp
+				FROM events
+				WHERE session_id = $1
+				ORDER BY timestamp ASC`,
+		sessionID,
+	)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("DB error: " + err.Error())
+	}
+	defer rows.Close()
+
+	var events[] Event
+	for rows.Next() {
+		var e Event
+		if err := rows.Scan(&e.SessionID, &e.Type, &e.Page, &e.X, &e.Y, &e.Timestamp); err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString("DB scan error: " + err.Error())
+		}
+		events = append(events, e)
+	}
+	return c.JSON(events)
 }
