@@ -29,6 +29,9 @@ func main() {
 		AllowHeaders: "Content-Type",
 	}))
 	app.Post("/event", handleEventPost)
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Insight Garden Backend API is alive and listening")
+	})
 	app.Get("/session/:id", handleSessionGet)
 	app.Listen(":3000")
 }
