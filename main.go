@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -42,7 +43,7 @@ type Event struct {
 	Page      string `json:"page"`
 	X         int    `json:"x"`
 	Y         int    `json:"y"`
-	Timestamp string `json:"timestamp"`	// ISO string for now
+	Timestamp time.Time `json:"timestamp"`	// ISO string for now
 }
 
 func handleEventPost(c *fiber.Ctx) error {
