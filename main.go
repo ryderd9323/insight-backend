@@ -42,7 +42,7 @@ func main() {
 	// Load database URL from environment or use default
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://postgres:postgres@localhost:5432/insight"
+		dbURL = "postgres://ryder:secret@localhost:5433/insight"
 	}
 
 	// Initialize pgx connection pool
@@ -78,12 +78,14 @@ func handleEventPost(c *fiber.Ctx) error {
 	_, err := db.Exec(context.Background(),
 		`INSERT INTO events (session_id, type, page, x, y, timestamp)
 		 VALUES ($1, $2, $3, $4, $5, $6)`,
-		e.SessionID, e.Type, e.Page, e.X, e.Y)
+		e.SessionID, e.Type, e.Page, e.X, e.Y, e.Timestamp)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("DB insert error: " + err.Error())
 	}
 
-	return c.SendStatus(fiber.StatusCreated) // Return 201 Created
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"status": "created",
+	})
 }
 
 // handleHeatmapGet handles GET requests to /heatmap/:page
