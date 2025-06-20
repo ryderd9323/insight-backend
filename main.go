@@ -42,7 +42,7 @@ func main() {
 	// Load database URL from environment or use default
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postrgres://postgres:postgres@localhost:5432/insight"
+		dbURL = "postgres://postgres:postgres@localhost:5432/insight"
 	}
 
 	// Initialize pgx connection pool
