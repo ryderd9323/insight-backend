@@ -24,6 +24,7 @@ type Event struct {
 type Dot struct {
 	X	float64 `json:"x"`
 	Y	float64	`json:"y"`
+	Count int	`json:"count"` // Count of events at this (x,y) point
 }
 
 // Global variable to hold the database connection pool
@@ -76,7 +77,7 @@ func handleEventPost(c *fiber.Ctx) error {
 
 	// Insert the event into the events table
 	_, err := db.Exec(context.Background(),
-		`INSERT INTO events (session_id, type, page, x, y, timestamp)
+		`INSERT INTO events (session_id, type, target, page, x, y, timestamp)
 		 VALUES ($1, $2, $3, $4, $5, $6)`,
 		e.SessionID, e.Type, e.Page, e.X, e.Y, e.Timestamp)
 	if err != nil {
@@ -112,7 +113,7 @@ func handleHeatmapGet(c *fiber.Ctx) error {
 	var dots[] Dot
 	for rows.Next() {
 		var d Dot
-		if err := rows.Scan(&d.X, &d.Y); err != nil {
+		if err := rows.Scan(&d.X, &d.Y, &d.Count); err != nil {
 			log.Printf("Heatmap scan error: %v\n", err)
 			return c.Status(fiber.StatusInternalServerError).SendString("Heatmap scan error")
 		}
