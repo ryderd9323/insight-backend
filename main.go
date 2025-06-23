@@ -77,7 +77,7 @@ func handleEventPost(c *fiber.Ctx) error {
 
 	// Insert the event into the events table
 	_, err := db.Exec(context.Background(),
-		`INSERT INTO events (session_id, type, target, page, x, y, timestamp)
+		`INSERT INTO events (session_id, type, page, x, y, timestamp)
 		 VALUES ($1, $2, $3, $4, $5, $6)`,
 		e.SessionID, e.Type, e.Page, e.X, e.Y, e.Timestamp)
 	if err != nil {
