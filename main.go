@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 )
 
 type Event struct {
@@ -93,15 +94,32 @@ func handleEventPost(c *fiber.Ctx) error {
 // Returns (x,y) points aggregated from event data on the given page
 func handleHeatmapGet(c *fiber.Ctx) error {
 	page := c.Params("page")
-	
-	// Query for all (x,y) points and their count
-	rows, err := db.Query(context.Background(),
-		`SELECT x, y, COUNT(*) as count
-		 FROM events
-		 WHERE page = $1
-		 GROUP BY x, y`,
-		page,
+	sessionID := c.Query("session", "")
+
+	var (
+		rows pgx.Rows
+		err error
 	)
+
+	if sessionID != "" {
+		// Only this session's clicks
+		rows, err = db.Query(context.Background(),
+			`SELECT x, y, COUNT(*) as count
+			FROM events
+			WHERE page = $1
+				AND session_id = $2
+			GROUP BY x, y`,
+				page, sessionID,
+		)
+	} else {
+		rows, err = db.Query(context.Background(),
+			`SELECT x, y
+			FROM events
+			WHERE page = $1
+			GROUP BY x, y`,
+			page,
+		)
+	}
 
 	if err != nil {
 		log.Printf("Heatmap query error: %v\n", err)
